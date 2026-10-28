@@ -26,16 +26,17 @@ jobs:
 
       - name: Ejecutar Semgrep (reglas PHP + OWASP + secretos)
         run: |
+          echo "Archivos PHP en el repo:"
+          find src -name "*.php"
           semgrep scan \
             --config .semgrep/reglas-php.yml \
             --config p/php \
             --config p/owasp-top-ten \
             --config p/secrets \
-            --sarif --output semgrep.sarif || true
-
-      - name: Subir SARIF a GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: semgrep.sarif
-          category: semgrep-php
+            --metrics=off \
+            --sarif --output semgrep.sarif \
+            --text-output semgrep.txt || echo "Semgrep terminó con código $?"
+          echo "===== RESULTADOS ====="
+          cat semgrep.txt || echo "No se generó semgrep.txt"
+          echo "Total de hallazgos en el SARIF:"
+          grep -o '"ruleId"' semgrep.sarif | wc -l
