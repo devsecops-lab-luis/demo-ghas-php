@@ -33,8 +33,6 @@ rules:
       - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}]
     pattern-sinks:
       - pattern-either: [{pattern: shell_exec(...)}, {pattern: system(...)}, {pattern: exec(...)}, {pattern: passthru(...)}]
-    pattern-sinks:
-      - pattern-either: [{pattern: shell_exec(...)}, {pattern: system(...)}, {pattern: exec(...)}, {pattern: passthru(...)}]
     pattern-sanitizers:
       - pattern-either: [{pattern: escapeshellarg(...)}, {pattern: escapeshellcmd(...)}]
   - id: php-path-traversal
