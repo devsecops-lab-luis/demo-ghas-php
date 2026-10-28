@@ -1,0 +1,41 @@
+name: Semgrep (PHP) -> Code Scanning
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+  schedule:
+    - cron: '30 6 * * 1'   # cada lunes
+
+permissions:
+  contents: read
+  security-events: write   # necesario para subir resultados a la pestaña Security
+  actions: read
+
+jobs:
+  semgrep:
+    name: Análisis estático PHP
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ejecutar Semgrep (reglas PHP + OWASP + secretos)
+        run: |
+          semgrep scan \
+            --config .semgrep/reglas-php.yml \
+            --config p/php \
+            --config p/owasp-top-ten \
+            --config p/secrets \
+            --sarif --output semgrep.sarif || true
+
+      - name: Subir SARIF a GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-php

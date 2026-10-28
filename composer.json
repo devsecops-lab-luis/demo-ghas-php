@@ -1,0 +1,13 @@
+{
+    "name": "demo/ghas-php",
+    "description": "Repositorio de demostración intencionalmente vulnerable para GitHub Advanced Security",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "guzzlehttp/guzzle": "6.3.0",
+        "phpmailer/phpmailer": "5.2.18",
+        "symfony/http-kernel": "4.4.0",
+        "twig/twig": "2.4.0",
+        "laravel/framework": "8.0.0"
+    }
+}
