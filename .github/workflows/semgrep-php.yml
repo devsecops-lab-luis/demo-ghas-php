@@ -35,8 +35,15 @@ jobs:
             --config p/secrets \
             --metrics=off \
             --sarif --output semgrep.sarif \
-            --text-output semgrep.txt || echo "Semgrep terminó con código $?"
+            --text-output semgrep.txt
           echo "===== RESULTADOS ====="
-          cat semgrep.txt || echo "No se generó semgrep.txt"
+          cat semgrep.txt
           echo "Total de hallazgos en el SARIF:"
           grep -o '"ruleId"' semgrep.sarif | wc -l
+
+      - name: Subir SARIF a GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-php
