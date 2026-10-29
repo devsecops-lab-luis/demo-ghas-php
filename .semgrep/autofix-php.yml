@@ -1,0 +1,81 @@
+rules:
+  - id: autofix-xss
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: "XSS: escapar la salida con htmlspecialchars()."
+    pattern-sources:
+      - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}, {pattern: $_COOKIE}]
+    pattern-sinks:
+      - patterns:
+          - pattern-inside: echo $X;
+          - pattern: $X
+    pattern-sanitizers:
+      - pattern-either: [{pattern: htmlspecialchars(...)}, {pattern: htmlentities(...)}]
+    fix: htmlspecialchars($X, ENT_QUOTES, 'UTF-8')
+  - id: autofix-command-injection
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: "Inyección de comandos: escapar cada argumento con escapeshellarg()."
+    pattern-sources:
+      - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}]
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern-inside: exec(...)
+              - pattern-inside: system(...)
+              - pattern-inside: shell_exec(...)
+              - pattern-inside: passthru(...)
+          - pattern: $V
+          - metavariable-regex: {metavariable: $V, regex: '^\$(?!_)\w+$'}
+    pattern-sanitizers:
+      - pattern-either: [{pattern: escapeshellarg(...)}, {pattern: escapeshellcmd(...)}]
+    fix: escapeshellarg($V)
+  - id: autofix-command-injection-directo
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: "Inyección de comandos: escapar cada argumento con escapeshellarg()."
+    pattern-sources:
+      - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}]
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern-inside: exec(...)
+              - pattern-inside: system(...)
+              - pattern-inside: shell_exec(...)
+              - pattern-inside: passthru(...)
+          - pattern: $SG[$K]
+          - metavariable-regex: {metavariable: $SG, regex: '^\$_(GET|POST|REQUEST)$'}
+    pattern-sanitizers:
+      - pattern-either: [{pattern: escapeshellarg(...)}, {pattern: escapeshellcmd(...)}]
+    fix: escapeshellarg($SG[$K])
+  - id: autofix-unserialize
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: "Deserialización insegura: usar json_decode()."
+    pattern-sources:
+      - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_COOKIE}, {pattern: $_REQUEST}]
+    pattern-sinks:
+      - pattern: unserialize($ARG)
+    fix: json_decode($ARG, true)
+  - id: autofix-path-traversal
+    mode: taint
+    languages: [php]
+    severity: ERROR
+    message: "Path traversal: quitar rutas del nombre con basename()."
+    pattern-sources:
+      - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}]
+    pattern-sinks:
+      - patterns:
+          - pattern-either:
+              - pattern-inside: readfile(...)
+              - pattern-inside: file_get_contents(...)
+              - pattern-inside: fopen(...)
+          - pattern: $V
+          - metavariable-regex: {metavariable: $V, regex: '^\$(?!_)\w+$'}
+    pattern-sanitizers:
+      - pattern: basename(...)
+    fix: basename($V)
