@@ -45,6 +45,8 @@ rules:
       - pattern-either: [{pattern: $_GET}, {pattern: $_POST}, {pattern: $_REQUEST}]
     pattern-sinks:
       - pattern-either: [{pattern: readfile(...)}, {pattern: file_get_contents(...)}, {pattern: include(...)}, {pattern: require(...)}]
+    pattern-sanitizers:
+      - pattern: basename(...)
   - id: php-deserializacion-insegura
     mode: taint
     languages: [php]
@@ -78,4 +80,4 @@ rules:
     metadata: {cwe: "CWE-798: Hard-coded Credentials", category: security, owasp: "A07:2021 - Identification and Authentication Failures"}
     patterns:
       - pattern: define("$K", "$V");
-      - metavariable-regex: {metavariable: $K, regex: (?i).*(pass|secret|token|key).*}
+      - metavariable-regex: {metavariable: $K, regex: '(?i).*(pass|secret|token|key).*'}
