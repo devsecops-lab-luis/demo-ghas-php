@@ -1,19 +1,7 @@
 <?php
-// Descargar un reporte por nombre (versión segura: lista permitida)
+// Nueva funcionalidad: descargar un reporte por nombre
 
-$clave = $_GET['reporte'] ?? '';
-
-switch ($clave) {
-    case 'ventas':
-        $archivo = '/var/www/reportes/ventas.txt';
-        break;
-    case 'inventario':
-        $archivo = '/var/www/reportes/inventario.txt';
-        break;
-    default:
-        http_response_code(404);
-        exit('Reporte no encontrado');
-}
+$reporte = $_GET['reporte'];
 
 header('Content-Type: text/plain');
-echo htmlspecialchars(file_get_contents($archivo));
+echo file_get_contents("/var/www/reportes/" . $reporte);
