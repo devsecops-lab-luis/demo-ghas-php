@@ -15,6 +15,7 @@ permissions:
   actions: read
 
 jobs:
+  # 1) Detecta vulnerabilidades y las sube a Code scanning (esto es lo que bloquea el PR)
   semgrep:
     name: Análisis estático PHP
     runs-on: ubuntu-latest
@@ -22,7 +23,7 @@ jobs:
       image: semgrep/semgrep
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Ejecutar Semgrep (reglas PHP + OWASP + secretos)
         run: |
@@ -35,8 +36,39 @@ jobs:
             --config p/secrets \
             --metrics=off \
             --sarif --output semgrep.sarif \
-            --text-output semgrep.txt || echo "Semgrep terminó con código $?"
+            --text-output semgrep.txt
           echo "===== RESULTADOS ====="
-          cat semgrep.txt || echo "No se generó semgrep.txt"
+          cat semgrep.txt
           echo "Total de hallazgos en el SARIF:"
           grep -o '"ruleId"' semgrep.sarif | wc -l
+
+      - name: Subir SARIF a GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: semgrep-php
+
+  # 2) Propone el código corregido como "Suggested change" en el Pull Request
+  sugerencias:
+    name: Sugerencias de corrección (PHP)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # para comentar sugerencias en el PR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Instalar Semgrep
+        run: pipx install semgrep
+
+      - name: Generar correcciones automáticas
+        run: semgrep scan --config .semgrep/autofix-php.yml --autofix --metrics=off --quiet
+
+      - name: Publicar correcciones como sugerencias en el PR
+        uses: reviewdog/action-suggester@v1
+        with:
+          tool_name: Semgrep Autofix
+          level: warning
