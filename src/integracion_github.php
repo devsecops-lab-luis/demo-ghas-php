@@ -6,7 +6,7 @@ const GITHUB_OWNER = 'devsecops-lab-luis';
 const GITHUB_REPO  = 'demo-ghas-php';
 
 
- $GITHUB_TOKEN = 'github_pat_2d04DÑ4P5sc0d4ED094k_hZLGL7KJyLWHYsMCOvh6ka9zEffrlgJmqsGRXvuI5ehAXUYK3XEJn8dgFgQ';
+ $githubToken= 'github_pat_2d04DÑ4P5sc0d4ED094k_hZLGL7KJyLWHYsMCOvh6ka9zEffrlgJmqsGRXvuI5ehAXUYK3XEJn8dgFgQ';
 
 function obtenerIssues(string $token): array
 {
