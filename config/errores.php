@@ -3,7 +3,7 @@
 const REPO_ALERTAS = 'devsecops-lab-luis/demo-ghas-php';
 
 
-$githubToken = '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';
+$githubToken = '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D0';
 
 function notificarError(string $titulo, string $detalle, string $token): bool
 {
